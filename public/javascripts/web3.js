@@ -2,7 +2,7 @@ var web3 = new Web3();
 web3.setProvider(new Web3.providers.HttpProvider('http://localhost:8545'));
 
 const contract_address = "";
-const abi = 
+const abi =
 
 let carTrade = new web3.eth.Contract(abi, contract_address);
 
@@ -11,13 +11,15 @@ $(document).ready(function() {
 })
 
 var startDapp = async function() {
+
 }
 
-
 var getBalance = function() {
+	
 }
 
 var getName = async function() {
+	
 }
 
 var registerName = async function() {
