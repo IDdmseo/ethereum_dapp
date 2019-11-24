@@ -22,9 +22,9 @@ contract ICarTrade{
     uint regCar_idx = 0;
     uint[] orderOfKey;
 
-    mapping(address => string) nameOf;
-    mapping(string => Car[]) registeredCars;
-    mapping(uint => Order) registeredOrders;
+    mapping(address => string) public nameOf;
+    mapping(string => Car[]) public registeredCars;
+    mapping(uint => Order) public registeredOrders;
 
     /* function */
     /* 차량을 등록하는 함수, 단 판매 목록에 등록은 아님 */ 
@@ -73,16 +73,17 @@ contract ICarTrade{
     function changeCarOwner(uint cnumber, address payable addr) public {
         Order memory changeinfo = registeredOrders[cnumber];
         Car[] memory deleteCar = registeredCars[changeinfo.car.owner_name];
-        
+        uint old_length = registeredCars[changeinfo.car.owner_name].length;
+
         /* 기존 소유 주의 등록 차량 목록에서 삭제 */
         for(uint i = 0; i < deleteCar.length; i++) {
             if(deleteCar[i].number != cnumber)
                 continue;
-            else {
+            else { // idx shift 부분
                 for(uint idx = i; idx < deleteCar.length - 1; idx++)
                     deleteCar[idx] = deleteCar[idx + 1];
                 delete deleteCar[deleteCar.length - 1];
-               /* deleteCar.length--; */ // how to express this part?
+                registeredCars[changeinfo.car.owner_name].length = old_length - 1;
             }
         }
         
@@ -111,16 +112,7 @@ contract ICarTrade{
     
     /* 주문 목록의 차량의 목록을 모두 불러오는 함수, 단 구매 완료된 차량은 표시 X */
     function getAllOrderedCar() public view returns(Order[] memory){
-        string memory curr_status;
-        Order[] memory show;
 
-        for(uint i = 0; i < orderOfKey.length; i++){
-            curr_status = registeredOrders[orderOfKey[i]].status;
-            if(bool(keccak256(curr_status) == keccak256("sale")))
-                show.push(registeredOrders[orderOfKey[i]]);
-            else
-                continue;
-        }
-        return show;
+
     }
 }
