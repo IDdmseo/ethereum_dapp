@@ -20,11 +20,11 @@ contract ICarTrade{
 
     /* variables */
     uint regCar_idx = 0;
-    uint[] orderOfKey;
+    uint[] orderOfKey; // key_idx => carnumber
 
-    mapping(address => string) public nameOf;
-    mapping(string => Car[]) public registeredCars;
-    mapping(uint => Order) public registeredOrders;
+    mapping(address => string) public nameOf; // address => name
+    mapping(string => Car[]) public registeredCars; // name => car
+    mapping(uint => Order) public registeredOrders; // carnumber => Order
 
     /* function */
     /* 차량을 등록하는 함수, 단 판매 목록에 등록은 아님 */ 
@@ -61,19 +61,25 @@ contract ICarTrade{
         // 1. 번호에 대응하는 판매 차량을 get
         // 2. transaction 발생
         // 3. transaction이 유효 할경우 소유 주 변경 작업 수행
+        address payable car_seller = registeredOrders[orderedcnumber].car.owner;
+        uint orderPrice = registeredOrders[orderedcnumber].price;
+
+        require(msg.sender.balance > orderPrice, "not enough ether to buy car\n");
+        balanceTransfer(car_seller, orderPrice);
+        changeCarOwner(orderedcnumber, msg.sender);
     }
 
     /* 오더 시 차량의 소유주에게 이더를 송금하는 함수 */
     function balanceTransfer(address payable seller, uint price) payable public {
-        require(msg.sender.balance > price, "there is not enough ether to buy this car\n");
         seller.transfer(price);
     }
 
     /* 차량의 소유주를 변경하는 함수 */ 
     function changeCarOwner(uint cnumber, address payable addr) public {
         Order memory changeinfo = registeredOrders[cnumber];
-        Car[] memory deleteCar = registeredCars[changeinfo.car.owner_name];
-        uint old_length = registeredCars[changeinfo.car.owner_name].length;
+        string memory originOwner = changeinfo.car.owner_name;
+        Car[] memory deleteCar = registeredCars[originOwner];
+        uint old_length = registeredCars[originOwner].length;
 
         /* 기존 소유 주의 등록 차량 목록에서 삭제 */
         for(uint i = 0; i < deleteCar.length; i++) {
@@ -83,7 +89,7 @@ contract ICarTrade{
                 for(uint idx = i; idx < deleteCar.length - 1; idx++)
                     deleteCar[idx] = deleteCar[idx + 1];
                 delete deleteCar[deleteCar.length - 1];
-                registeredCars[changeinfo.car.owner_name].length = old_length - 1;
+                registeredCars[originOwner].length = old_length - 1;
             }
         }
         
@@ -100,7 +106,7 @@ contract ICarTrade{
         return registeredCars[name];
     }
 
-    /* 주소를 키값으로 이름을 불러오는 작업 */
+    /* 주소를 key로 이름을 불러오는 작업 */
     function getName() public view returns(string memory){
         return nameOf[msg.sender];
     }
@@ -112,7 +118,23 @@ contract ICarTrade{
     
     /* 주문 목록의 차량의 목록을 모두 불러오는 함수, 단 구매 완료된 차량은 표시 X */
     function getAllOrderedCar() public view returns(Order[] memory){
-
-
+        uint idx = 0;
+        string memory compare;
+        Order[] memory showOrders;
+        Order memory search;
+                
+        require(orderOfKey.length > 0, "there are no orders in list\n");
+        for(uint i = 0; i <= orderOfKey.length; i++){
+            compare = registeredOrders[orderOfKey[i]].status;
+            if(keccak256(bytes(compare)) != keccak256(bytes("sale")))
+                continue;
+            else {
+                search = registeredOrders[orderOfKey[i]];
+                showOrders[idx] = search;
+                idx += 1;
+            }
+        }
+        require(showOrders.length > 0, "there are no available orders in list\n");
+        return showOrders;
     }
 }

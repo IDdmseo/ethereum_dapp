@@ -1,6 +1,5 @@
 var web3 = new Web3();
 web3.setProvider(new Web3.providers.HttpProvider('http://localhost:8545'));
-
 const contract_address = "";
 const abi =
 
@@ -11,7 +10,7 @@ $(document).ready(function() {
 })
 
 var startDapp = async function() {
-
+	
 }
 
 var getBalance = function() {
@@ -19,10 +18,11 @@ var getBalance = function() {
 }
 
 var getName = async function() {
-	
+
 }
 
 var registerName = async function() {
+	
 }
 
 
