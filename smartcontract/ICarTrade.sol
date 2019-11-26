@@ -21,6 +21,7 @@ contract ICarTrade{
     /* variables */
     uint regCar_idx = 0;
     uint[] orderOfKey; // key_idx => carnumber
+    string[] alluser;
 
     mapping(address => string) public nameOf; // address => name
     mapping(string => Car[]) public registeredCars; // name => car
@@ -38,6 +39,7 @@ contract ICarTrade{
     /* 이름 등록 작업 */
     function registerName(string memory name) public {
         nameOf[msg.sender] = name;
+        alluser.push(name);
     }
 
     /* 자신의 등록된 차를 오더 목록에 올리는 함수 */
@@ -113,7 +115,23 @@ contract ICarTrade{
 
     /* 등록된 모든 차량의 목록을 불러오는 함수, 단 판매중인 차량은 등록된 목록에 표시 하지 않는다? */
     function getAllRegisteredCar() public view returns(Car[] memory){
-        
+        uint idx = 0;
+        Car[] memory showCars;
+
+        for(uint i = 0; i < alluser.length; i++){ // 
+            for(uint j = 0; j < registeredCars[alluser[i]].length; j++){
+                for(uint k = 0; k < orderOfKey.length; k++){
+                    if(registeredCars[alluser[i]][j].number != orderOfKey[k]){
+                        showCars[idx] = registeredCars[alluser[i]][j];
+                        idx += 1;
+                    } else
+                        continue;
+                }
+            }
+        }
+
+        require(showCars.length > 0, "there are no registeredCars\n");
+        return showCars;
     }
     
     /* 주문 목록의 차량의 목록을 모두 불러오는 함수, 단 구매 완료된 차량은 표시 X */
