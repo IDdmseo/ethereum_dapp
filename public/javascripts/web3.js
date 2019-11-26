@@ -432,9 +432,13 @@ const abi = [
 
 let carTrade = new web3.eth.Contract(abi, contract_address);
 
-var user_privateKey;
-var user_address;
+/* variables */
+var curr_privKey;
+var curr_address;
+var priv_to_name = new Map();
 
+
+/* function */
 $(document).ready(function() {
 	startDapp();
 })
@@ -448,13 +452,18 @@ var startDapp = async function() {
 }
 
 var getBalance = function() {
-	user_privateKey = await document.getElementById("private_key").value;
-	user_address = await web3.eth.accounts.privateKeyToAccount(privateKey);
-	$('#balanceAmount').text(web3.eth.fromWei(web3.getBalance(user_address), 'ether'));
+	curr_privKey = await document.getElementById("private_key").value;
+	if(!priv_to_name.get(curr_privKey))
+		priv_to_name.set(curr_privKey, $('#name').text())
+	curr_address = await web3.eth.accounts.privateKeyToAccount(curr_privKey);
+	$('#balanceAmount').text(web3.eth.fromWei(web3.getBalance(curr_address), 'ether'));
 }
 
 var getName = async function() {
-	$('#name').text(document.getElementById("change_name").value);
+	var update_name = $('#name').text();
+	if(!$('private_key').text())
+		priv_to_name[curr_privKey] = update_name;
+	$('#name').text(priv_to_name.get(curr_privKey));
 }
 
 var registerName = async function() {
@@ -480,38 +489,40 @@ var registerMyCar = async function() {
 	var model = await document.getElementById("model").value;
 	var color = await document.getElementById("color").value;
 
-	carTrade.methods.registerCar(make. model, color).call({from:user_address});
+	carTrade.methods.registerCar(make. model, color).call({from:curr_address});
 }
 
 var sellMyCar = async function() {
-	var cnumber = await document.getElementById("mycars-category").value; //
+	var cnumber = await getSellMyCars();
 	var price = await document.getElementById("price").value;
 
-	carTrade.methods.sellMyCar(cnumber, price).call({from:user_address});
+	carTrade.methods.sellMyCar(cnumber, price).call({from:curr_address});
 }
 
 var buyUserCar = async function() {
 	var orderedcnumber = await getBuyUsersCar(); //
-	carTrade.methods.buyUserCar(orderedcnumber).send({from:user_address});
+	carTrade.methods.buyUserCar(orderedcnumber).send({from:curr_address});
 }
 
 var getMyCars = async function() {
-	carTrade.methods.getMyCars().call({from:user_address});
+	carTrade.methods.getMyCars().call({from:curr_address});
 }
 
 var getRegisteredCars = async function() {
-	carTrade.methods.getAllRegisteredCar().call({from:user_address});
+	carTrade.methods.getAllRegisteredCar().call({from:curr_address});
 }
 
 var getSellMyCars = async function() {
-	/* called in sellMyCar */
+	getMyCars();
+	return ;
 }
 
 var getCarsOnSale = async function() {
-	carTrade.methos.getAllOrderedCar().call({from:user_address});
+	carTrade.methos.getAllOrderedCar().call({from:curr_address});
 }
 
 var getBuyUsersCar = async function() {
 	getCarsOnSale();
+	return ;
 }
 
